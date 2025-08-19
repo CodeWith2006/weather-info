@@ -211,53 +211,64 @@ document.addEventListener('DOMContentLoaded', () => {
         return res.json();
     };
 
-    citySearch.addEventListener('input', debounce(async () => {
-        const val = citySearch.value.trim();
-        autocompleteList.innerHTML = '';
-        if (val.length < 2) return;
+    // PLACE FINDER input — attach only if inputs exist
+    if (citySearch && autocompleteList) {
+        citySearch.addEventListener('input', debounce(async () => {
+            const val = citySearch.value.trim();
+            autocompleteList.innerHTML = '';
+            if (val.length < 2) return;
 
-        // Try local city startsWith for instant suggestions
-        const localMatches = INDIAN_CITIES.filter(c => c.name.toLowerCase().startsWith(val.toLowerCase()));
-        localMatches.slice(0, 4).forEach(city => {
-            const li = document.createElement('li');
-            li.textContent = city.name;
-            li.tabIndex = 0;
-            li.addEventListener('click', () => selectPlace(city.name, city.coords));
-            autocompleteList.appendChild(li);
-        });
-
-        // Then query Nominatim for broader place-finder results
-        try {
-            const results = await nominatimSearch(val);
-            results.forEach(r => {
-                // prefer display names that include city/state
-                const name = r.display_name;
-                const lat = parseFloat(r.lat);
-                const lon = parseFloat(r.lon);
+            // Try local city startsWith for instant suggestions
+            const localMatches = INDIAN_CITIES.filter(c => c.name.toLowerCase().startsWith(val.toLowerCase()));
+            localMatches.slice(0, 4).forEach(city => {
                 const li = document.createElement('li');
-                li.textContent = name;
+                li.textContent = city.name;
                 li.tabIndex = 0;
-                li.addEventListener('click', () => selectPlace(name, [lat, lon]));
+                li.addEventListener('click', () => selectPlace(city.name, city.coords));
                 autocompleteList.appendChild(li);
             });
-        } catch (err) {
-            console.warn('Nominatim error', err);
-        }
-    }, 300));
 
-    autocompleteList.addEventListener('mousedown', e => e.preventDefault()); // Prevent blur
+            // Then query Nominatim for broader place-finder results
+            try {
+                const results = await nominatimSearch(val);
+                results.forEach(r => {
+                    const name = r.display_name;
+                    const lat = parseFloat(r.lat);
+                    const lon = parseFloat(r.lon);
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    li.tabIndex = 0;
+                    li.addEventListener('click', () => selectPlace(name, [lat, lon]));
+                    autocompleteList.appendChild(li);
+                });
+            } catch (err) {
+                console.warn('Nominatim error', err);
+            }
+        }, 300));
+    }
 
-    citySearch.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && autocompleteList.firstChild) {
-            autocompleteList.firstChild.click();
-        }
-    });
+    // Prevent blur when clicking autocomplete (if present)
+    if (autocompleteList) {
+        autocompleteList.addEventListener('mousedown', e => e.preventDefault());
+    }
 
-    recentSearches.addEventListener('change', () => {
-        let name = recentSearches.value;
-        let city = INDIAN_CITIES.find(c => c.name === name);
-        if (city) selectPlace(city.name, city.coords);
-    });
+    // Enter key selects first autocomplete item (if present)
+    if (citySearch && autocompleteList) {
+        citySearch.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && autocompleteList.firstChild) {
+                autocompleteList.firstChild.click();
+            }
+        });
+    }
+
+    // Recent searches change handler (if select exists)
+    if (recentSearches) {
+        recentSearches.addEventListener('change', () => {
+            let name = recentSearches.value;
+            let city = INDIAN_CITIES.find(c => c.name === name);
+            if (city) selectPlace(city.name, city.coords);
+        });
+    }
 
     function selectPlace(name, coords) {
         citySearch.value = name;
@@ -583,4 +594,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     })();
+
+    /* refresh map on orientation change / resize so portrait layout frames correctly */
+    function refreshMapLayout() {
+        try {
+            const center = (marker && marker.getLatLng) ? marker.getLatLng() : DEFAULT_LOCATION.coords;
+            if (map && center) {
+                map.setView(center, getMapZoom());
+                // allow layout changes to settle then invalidate size
+                setTimeout(() => { try { if (map && map.invalidateSize) map.invalidateSize(); } catch (e) {} }, 220);
+            }
+        } catch (e) { /* ignore */ }
+    }
+    window.addEventListener('orientationchange', refreshMapLayout);
+    window.addEventListener('resize', debounce(refreshMapLayout, 200));
 });

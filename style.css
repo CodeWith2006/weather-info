@@ -18,7 +18,7 @@
 }
 
 /* Light-mode fallback (prefers-color-scheme or explicit .theme-day) */
-body.theme-day, @media (prefers-color-scheme: light){
+body.theme-day {
   --bg-0: #f6fbff;
   --bg-1: linear-gradient(180deg,#f4f7fa 0%, #eaf6ff 100%);
   --panel-bg: rgba(255,255,255,0.94);
@@ -29,6 +29,21 @@ body.theme-day, @media (prefers-color-scheme: light){
   --muted: #5b6b7a;
   --glass-blur: 0px;
   --shadow-soft: 0 6px 18px rgba(11,41,69,0.06);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-0: #f6fbff;
+    --bg-1: linear-gradient(180deg,#f4f7fa 0%, #eaf6ff 100%);
+    --panel-bg: rgba(255,255,255,0.94);
+    --panel-border: rgba(11,41,69,0.04);
+    --accent: #ff7a00;
+    --accent-2: #0066cc;
+    --temp-color: #0b2945;
+    --muted: #5b6b7a;
+    --glass-blur: 0px;
+    --shadow-soft: 0 6px 18px rgba(11,41,69,0.06);
+  }
 }
 
 /* Page base */
@@ -47,7 +62,7 @@ body {
 }
 
 /* App container */
-.app-container{ max-width:980px; margin:20px auto; padding:18px; }
+.app-container{ max-width:760px; margin:20px auto; padding:18px; }
 
 /* Header */
 header{ display:flex; gap:12px; align-items:flex-start; padding:8px 0 14px 0; background:transparent; }
@@ -62,15 +77,20 @@ header p{ margin:4px 0 0 0; color:var(--muted); font-size:0.9rem; }
   background: linear-gradient(180deg, var(--panel-bg), rgba(255,255,255,0.01));
   border:1px solid var(--panel-border);
   border-radius: var(--card-radius);
-  padding:18px;
+  padding:12px;
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
 /* Weather card specifics */
+.weather-card{
+  max-width:720px;
+  margin-left:auto;
+  margin-right:auto;
+}
 .weather-card h2{ margin-top:0; color:var(--accent); font-weight:600; }
-.temperature{ font-size:4rem; font-weight:700; margin:6px 0; color:var(--temp-dynamic); letter-spacing:-0.6px; }
+.temperature{ font-size:2.6rem; font-weight:700; margin:6px 0; color:var(--temp-dynamic); letter-spacing:-0.6px; }
 .temperature {
   will-change: transform, color;
   transition: transform 420ms cubic-bezier(.2,.9,.3,1), color 420ms ease;
@@ -107,14 +127,55 @@ header p{ margin:4px 0 0 0; color:var(--muted); font-size:0.9rem; }
 .spinner{ display:inline-block; width:28px; height:28px; border-radius:50%; border:3px solid rgba(255,255,255,0.06); border-top-color:var(--accent); animation: spin 1s linear infinite; }
 @keyframes spin{ to{ transform: rotate(360deg); } }
 
-/* Forecast list */
-#forecast-container{ margin-top:14px; }
-.forecast-list{ list-style:none; margin:0; padding:6px 0 10px 0; display:flex; gap:12px; overflow:auto; -webkit-overflow-scrolling:touch; scroll-snap-type: x mandatory; }
-.forecast-item{ min-width:110px; max-width:120px; flex:0 0 auto; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; box-shadow: inset 0 -8px 18px rgba(0,0,0,0.12); transition: transform var(--transition), background var(--transition); scroll-snap-align: center; }
-.forecast-item:hover{ transform: translateY(-8px); background: rgba(255,255,255,0.03); }
-.forecast-item .forecast-time{ font-size:0.9rem; color:var(--muted); }
-.forecast-item .forecast-temp{ font-weight:700; font-size:1.05rem; color:var(--accent-2); }
-.forecast-item .forecast-cond{ font-size:0.85rem; color:var(--muted); }
+/* Forecast list: show 3 items at a time, horizontal scroll to see others */
+.forecast-list{
+  list-style:none;
+  margin:0;
+  padding:6px 0 10px 0;
+  display:flex;
+  gap:12px;
+  overflow-x:auto; /* ensure horizontal scrolling */
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type: x mandatory;
+  /* visible scrollbars */
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+  scrollbar-width: thin;
+  padding-bottom: 10px;
+}
+
+/* Each item occupies roughly 1/3 of the visible area (accounting for gaps) */
+.forecast-item{
+  flex: 0 0 calc((100% - 24px) / 3);
+  min-width: calc((100% - 24px) / 3);
+  max-width: calc((100% - 24px) / 3);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:14px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  text-align:center;
+  box-shadow: inset 0 -8px 18px rgba(0,0,0,0.12);
+  transition: transform var(--transition), background var(--transition);
+  scroll-snap-align: center;
+}
+
+/* WebKit scrollbar styling (visually clear) */
+.forecast-list::-webkit-scrollbar { height: 10px; }
+.forecast-list::-webkit-scrollbar-track { background: transparent; }
+.forecast-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+
+/* Responsive: on very small screens show 2 items at a time for readability */
+@media (max-width: 520px) {
+  .forecast-item {
+    flex: 0 0 calc((100% - 12px) / 2);
+    min-width: calc((100% - 12px) / 2);
+    max-width: calc((100% - 12px) / 2);
+    padding:12px;
+  }
+}
 
 /* Map card & controls */
 .map-card{ display:flex; flex-direction:column; gap:8px; }
@@ -158,9 +219,9 @@ a:focus, button:focus, input:focus, select:focus{ outline: 3px solid rgba(158,21
 .forecast-list::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px; }
 
 /* Responsive */
-@media (max-width: 900px){ .dashboard-grid{ grid-template-columns: 1fr; } .map-card{ order:2; } #map{ height:300px; } .temperature{ font-size:3.2rem; } }
+@media (max-width: 900px){ .dashboard-grid{ grid-template-columns: 1fr; } .map-card{ order:2; } #map{ height:300px; } .temperature{ font-size:2.2rem; } }
 
-@media (max-width: 520px){ .toggle-track{ width:46px; height:26px; } .toggle-thumb{ width:20px; height:20px; top:3px; left:3px; } .forecast-item{ min-width:92px; max-width:96px; padding:8px; } }
+@media (max-width: 520px){ .toggle-track{ width:46px; height:26px; } .toggle-thumb{ width:20px; height:20px; top:3px; left:3px; } .forecast-item{ min-width:92px; max-width:96px; padding:8px; } .temperature{ font-size:1.6rem; } }
 
 /* Fullscreen map styles */
 .map-card.map-fullscreen {
@@ -286,4 +347,78 @@ a:focus, button:focus, input:focus, select:focus{ outline: 3px solid rgba(158,21
 	header { padding-top: 6px; }
 	header p { width: 100%; margin-top: 6px; }
 	footer { padding: 12px 0; text-align: center; font-size: 0.9rem; }
+}
+
+/* Portrait: force stacked layout and put map under the weather card */
+@media (orientation: portrait) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* single column */
+  }
+  /* ensure weather card stays first and map stays after it */
+  .weather-card { order: 1; }
+  .map-card { order: 2; width: 100%; margin-top: 12px; }
+
+  /* make the map taller on portrait devices (viewport-aware) */
+  #map {
+    height: 48vh; /* relative height so header/footer remain visible */
+    min-height: 320px; /* safe minimum */
+  }
+
+  /* fullscreen controls move to bottom on portrait so they don't obstruct center */
+  .map-card.map-fullscreen #map-controls {
+    top: auto;
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.04);
+  }
+}
+
+/* Strong portrait rule: ensure single-column stack and map at bottom */
+@media (orientation: portrait) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important; /* force single column */
+  }
+  .weather-card { order: 1 !important; }
+  .map-card { order: 2 !important; width: 100% !important; margin-top: 12px !important; }
+
+  /* portrait map sizing (relative to viewport) */
+  #map {
+    height: 52vh !important;
+    min-height: 320px !important;
+  }
+
+  /* fullscreen controls moved to bottom so they don't cover map center */
+  .map-card.map-fullscreen #map-controls {
+    top: auto !important;
+    bottom: 16px !important;
+    left: 12px !important;
+    right: 12px !important;
+    justify-content: space-between !important;
+    background: rgba(255,255,255,0.04) !important;
+  }
+}
+
+/* Force single-column layout everywhere so map is always below the weather info */
+.dashboard-grid {
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+  gap: 18px !important;
+}
+
+/* Ensure ordering: weather first, map second */
+.weather-card { order: 1 !important; }
+.map-card { order: 2 !important; width: 100% !important; }
+
+/* Make the map visually separated under the weather content */
+.grid-item.map-card { margin-top: 12px !important; }
+#map { margin-top: 8px !important; width: 100% !important; }
+
+/* Keep map controls accessible when map is below content */
+.map-card.map-fullscreen #map-controls {
+  top: 14px !important;
+  left: 14px !important;
+  right: auto !important;
+  bottom: auto !important;
 }
