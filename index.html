@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Himalayan Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- moved inline styles to style.css -->
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Himalayan Weather Dashboard</h1>
+            <p>Live weather for India</p>
+
+            <!-- Day / Night toggle -->
+            <div class="theme-control" aria-hidden="false">
+                <label class="theme-switch" title="Toggle day / night">
+                    <input type="checkbox" id="theme-toggle" aria-label="Toggle day/night">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <div class="grid-item weather-card" aria-live="polite">
+                <div class="search-section">
+                    <input type="text" id="city-search" placeholder="Find place or city in India..." autocomplete="off" aria-label="Find place or city">
+                    <ul id="autocomplete-list" class="autocomplete-list"></ul>
+                    <select id="recent-searches" aria-label="Recent searches">
+                        <option value="">Recent searches</option>
+                    </select>
+                </div>
+                <h2 id="location-name">Loading...</h2>
+                <div id="weather-spinner" style="display:none;">
+                    <span class="spinner"></span>
+                </div>
+                <p id="temperature" class="temperature">--°C</p>
+                <p id="condition" class="condition">--</p>
+                <div class="details">
+                    <span id="humidity">Humidity: --%</span>
+                    <span id="wind">Wind: -- km/h</span>
+                </div>
+
+                <!-- Forecast block -->
+                <div id="forecast-container" aria-live="polite" style="margin-top:16px;">
+                    <h3 style="margin:8px 0 12px 0;">Forecast</h3>
+                    <ul id="forecast-list" class="forecast-list">
+                        <!-- Forecast items will be injected here -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid-item map-card">
+                <h3>Weather Map</h3>
+                <div id="map-controls" class="map-controls">
+                    <label for="weather-layer-select">Overlay:</label>
+                    <select id="weather-layer-select" aria-label="Weather overlay">
+                        <option value="">None</option>
+                        <option value="precipitation_new">Precipitation</option>
+                        <option value="clouds_new">Clouds</option>
+                        <option value="temp_new">Temperature</option>
+                    </select>
+                    <button id="map-refresh" title="Refresh latest map">Latest</button>
+                    <button id="map-fullscreen" title="Toggle fullscreen map" aria-label="Toggle fullscreen map">⤢</button>
+                    <span id="map-timestamp" class="map-timestamp" aria-live="polite"></span>
+                </div>
+                <div id="map"></div>
+            </div>
+        </main>
+        <footer>
+            <small>&copy; 2024 Himalayan Dashboard</small>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+    <!-- Inline map init removed. script.js initializes & manages the map. -->
+</body>
+</html>
